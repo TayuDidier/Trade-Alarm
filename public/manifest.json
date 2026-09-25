@@ -1,0 +1,16 @@
+{
+  "name": "TradeAlarm - Persistent Trading Alarms",
+  "short_name": "TradeAlarm",
+  "description": "Continuous wake-up alarms for crypto, forex, and stock price levels.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0c10",
+  "theme_color": "#0a0c10",
+  "icons": [
+    {
+      "src": "/alarm-icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
