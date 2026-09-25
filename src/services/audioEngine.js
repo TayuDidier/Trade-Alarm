@@ -3,16 +3,16 @@
 // Routes through high-gain audio with looping, speech synthesis, and phone vibration
 
 export const ALARM_SOUND_PROFILES = [
-  { id: 'siren', name: 'Air Raid Siren', category: 'emergency', desc: 'Continuous pitch sweep with sub-bass (Maximum Wake-Up)', icon: '🚨' },
-  { id: 'digital', name: 'Digital Alarm Clock', category: 'classic', desc: 'Aggressive twin-tone 1kHz+2kHz burst beeps', icon: '⏰' },
-  { id: 'klaxon', name: 'Industrial Klaxon', category: 'industrial', desc: 'Harsh alternating dual-tone foghorn', icon: '📢' },
-  { id: 'meltdown', name: 'Nuclear Meltdown Alert', category: 'emergency', desc: 'Urgent 3-frequency pulsating radiation siren', icon: '☢️' },
-  { id: 'eas', name: 'Emergency Broadcast (EAS)', category: 'emergency', desc: 'National warning system jarring dual-tones (853Hz+960Hz)', icon: '⚠️' },
-  { id: 'bell', name: 'Wall Street Trading Bell', category: 'trading', desc: 'Resonant NYSE opening bell gong with metallic rings', icon: '🔔' },
-  { id: 'laser', name: 'Sci-Fi Pulse Laser', category: 'tactical', desc: 'Rapid hyper-speed descending laser sweeps', icon: '⚡' },
-  { id: 'bugle', name: 'Military Reveille Call', category: 'tactical', desc: 'Brass arpeggio wake-up charge fanfare', icon: '🎺' },
-  { id: 'sonar', name: 'Submarine Sonar Ping', category: 'gentle', desc: 'Resonant underwater ping with deep decay', icon: '🌊' },
-  { id: 'chime', name: 'Ascending Zen Chime', category: 'gentle', desc: 'Harmonic melodic bell loop for relaxed setups', icon: '✨' },
+  { id: 'siren', name: 'Air Raid Siren', category: 'emergency', desc: 'Continuous pitch sweep (Maximum Wake-Up)' },
+  { id: 'digital', name: 'Digital Alarm', category: 'classic', desc: 'Aggressive twin-tone burst beeps' },
+  { id: 'klaxon', name: 'Industrial Klaxon', category: 'industrial', desc: 'Harsh alternating dual-tone foghorn' },
+  { id: 'meltdown', name: 'Nuclear Meltdown', category: 'emergency', desc: 'Urgent 3-frequency pulsating radiation siren' },
+  { id: 'eas', name: 'Emergency EAS', category: 'emergency', desc: 'National warning system jarring dual-tones' },
+  { id: 'bell', name: 'Wall Street Bell', category: 'trading', desc: 'Resonant NYSE opening bell gong' },
+  { id: 'laser', name: 'Sci-Fi Pulse Laser', category: 'tactical', desc: 'Rapid hyper-speed descending laser sweeps' },
+  { id: 'bugle', name: 'Reveille Bugle', category: 'tactical', desc: 'Brass arpeggio wake-up charge fanfare' },
+  { id: 'sonar', name: 'Sonar Ping', category: 'gentle', desc: 'Resonant underwater ping with deep decay' },
+  { id: 'chime', name: 'Zen Chime', category: 'gentle', desc: 'Harmonic melodic bell loop for calm setups' },
 ];
 
 class AudioAlarmEngine {
