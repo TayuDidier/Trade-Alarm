@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { alertManager } from '../services/alertManager';
 import { ShieldCheck, X, Bell } from 'lucide-react';
 
+import { DEFAULT_WATCHLIST, formatAssetPrice, getDisplaySymbol } from '../services/marketData';
+
 export default function NightstandClock({ onClose, alerts, currentPrices }) {
   const [timeStr, setTimeStr] = useState('');
   const [dateStr, setDateStr] = useState('');
@@ -48,11 +50,13 @@ export default function NightstandClock({ onClose, alerts, currentPrices }) {
           {activeAlerts.slice(0, 4).map(alert => {
             const live = currentPrices[alert.symbol];
             const livePrice = live ? live.price : '...';
+            const matched = DEFAULT_WATCHLIST.find(i => i.symbol === alert.symbol);
+            const isForex = matched?.category === 'forex';
             return (
               <div key={alert.id} className="nightstand-ticker-pill">
-                <span className="ticker-sym">{alert.symbol.replace('USDT', '')}</span>
-                <span className="ticker-target">Alarm @ ${Number(alert.targetPrice).toLocaleString()}</span>
-                <span className="ticker-live">Live: ${typeof livePrice === 'number' ? livePrice.toLocaleString() : livePrice}</span>
+                <span className="ticker-sym">{getDisplaySymbol(alert.symbol)}</span>
+                <span className="ticker-target">Alarm @ {!isForex ? '$' : ''}{formatAssetPrice(alert.targetPrice, matched?.category)}</span>
+                <span className="ticker-live">Live: {!isForex && typeof livePrice === 'number' ? '$' : ''}{typeof livePrice === 'number' ? formatAssetPrice(livePrice, matched?.category) : livePrice}</span>
               </div>
             );
           })}

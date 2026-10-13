@@ -19,50 +19,82 @@ export class AlertManager {
   loadAlerts() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        let parsed = JSON.parse(saved);
+        // Migrate legacy demo alerts if they had outdated hardcoded targets
+        let migrated = false;
+        parsed = parsed.map(a => {
+          if (a.id === 'default-btc-1' && a.targetPrice < 70000) {
+            migrated = true;
+            return { ...a, targetPrice: 85000.00 };
+          }
+          if (a.id === 'default-gold-1' && a.targetPrice < 3000) {
+            migrated = true;
+            return { ...a, targetPrice: 4150.00 };
+          }
+          return a;
+        });
+        if (migrated) {
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed)); } catch {}
+        }
+        return parsed;
+      }
     } catch (e) {
       console.warn('Error loading alerts from localStorage', e);
     }
-    // Default starter alerts for demonstration
+    // Default starter alerts reflecting live market reality
     return [
       {
         id: 'default-btc-1',
         symbol: 'BTCUSDT',
         name: 'Bitcoin',
-        targetPrice: 66000.00,
+        targetPrice: 85000.00,
         condition: 'above',
         sound: 'siren',
         enableTts: true,
-        strategyNote: 'Major 4H Resistance Breakout - Confirm with Volume',
+        strategyNote: 'Psychological Resistance Breakout - Confirm with Volume',
         priority: 'critical',
         active: true,
         createdAt: Date.now() - 3600000,
       },
       {
-        id: 'default-eth-1',
-        symbol: 'ETHUSDT',
-        name: 'Ethereum',
-        targetPrice: 2600.00,
-        condition: 'below',
-        sound: 'digital',
+        id: 'default-us30-1',
+        symbol: 'US30',
+        name: 'Dow Jones 30',
+        targetPrice: 51500.00,
+        condition: 'above',
+        sound: 'bell',
         enableTts: true,
-        strategyNote: 'Support level liquidity sweep zone',
+        strategyNote: 'Wall Street Opening Range High Breakout',
         priority: 'high',
         active: true,
-        createdAt: Date.now() - 7200000,
+        createdAt: Date.now() - 1800000,
       },
       {
         id: 'default-gold-1',
         symbol: 'XAUUSD',
         name: 'Gold Spot',
-        targetPrice: 2660.00,
+        targetPrice: 4150.00,
         condition: 'above',
         sound: 'klaxon',
         enableTts: true,
-        strategyNote: 'All-time high retest - Watch DXY correlation',
+        strategyNote: 'All-Time High Retest - Watch DXY correlation',
         priority: 'critical',
         active: true,
-        createdAt: Date.now() - 1800000,
+        createdAt: Date.now() - 7200000,
+      },
+      {
+        id: 'default-v75-1',
+        symbol: 'V75',
+        name: 'Volatility 75 Index',
+        targetPrice: 390000.00,
+        condition: 'above',
+        sound: 'laser',
+        enableTts: true,
+        strategyNote: 'Key Psychological Resistance Retest - Confirm Volatility Sweep',
+        priority: 'high',
+        active: true,
+        createdAt: Date.now() - 900000,
       }
     ];
   }

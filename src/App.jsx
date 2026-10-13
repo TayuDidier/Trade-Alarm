@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { alertManager } from './services/alertManager';
-import { marketDataService, DEFAULT_WATCHLIST } from './services/marketData';
+import { marketDataService, DEFAULT_WATCHLIST, ASSET_CATEGORIES } from './services/marketData';
 import { audioEngine } from './services/audioEngine';
 import AlarmModal from './components/AlarmModal';
 import AddAlertModal from './components/AddAlertModal';
@@ -37,6 +37,7 @@ export default function App() {
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [audioArmed, setAudioArmed] = useState(false);
   const [showTestTools, setShowTestTools] = useState(false);
+  const [watchlistCategory, setWatchlistCategory] = useState('all');
 
   // Initialize Market Data & Subscriptions
   useEffect(() => {
@@ -195,9 +196,30 @@ export default function App() {
               <button 
                 type="button" 
                 className="btn-test-trigger"
-                onClick={() => handleSimulateSpike('BTCUSDT', 66050)}
+                onClick={() => handleSimulateSpike('BTCUSDT', 85050)}
               >
                 Spike BTC
+              </button>
+              <button 
+                type="button" 
+                className="btn-test-trigger"
+                onClick={() => handleSimulateSpike('US30', 51550)}
+              >
+                Spike US30
+              </button>
+              <button 
+                type="button" 
+                className="btn-test-trigger"
+                onClick={() => handleSimulateSpike('V75', 390500)}
+              >
+                Spike V75
+              </button>
+              <button 
+                type="button" 
+                className="btn-test-trigger"
+                onClick={() => handleSimulateSpike('V75(1s)', 27250)}
+              >
+                Spike V75(1s)
               </button>
             </div>
           </div>
@@ -296,13 +318,30 @@ export default function App() {
                 <div>
                   <h3 className="pane-title">Real-Time Markets</h3>
                   <p className="pane-subtitle">
-                    Zero-latency Binance Crypto WebSocket & Live Forex / Gold
+                    Live Wall Street & Global Indices, Binance Crypto WebSocket, Gold, and Forex
                   </p>
                 </div>
               </div>
 
+              {/* Category Filter Pills */}
+              <div className="watchlist-filter-bar">
+                {ASSET_CATEGORIES.map(cat => (
+                  <button
+                    type="button"
+                    key={cat.id}
+                    className={`cat-filter-btn ${watchlistCategory === cat.id ? 'active' : ''}`}
+                    onClick={() => setWatchlistCategory(cat.id)}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
               <div className="watchlist-grid">
-                {DEFAULT_WATCHLIST.map(asset => (
+                {(watchlistCategory === 'all'
+                  ? DEFAULT_WATCHLIST
+                  : DEFAULT_WATCHLIST.filter(a => a.category === watchlistCategory)
+                ).map(asset => (
                   <WatchlistCard
                     key={asset.symbol}
                     asset={asset}

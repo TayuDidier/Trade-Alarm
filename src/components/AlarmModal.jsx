@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { alertManager } from '../services/alertManager';
 import { ALARM_SOUND_PROFILES } from '../services/audioEngine';
+import { DEFAULT_WATCHLIST, formatAssetPrice, getDisplaySymbol } from '../services/marketData';
 import SoundIcon from './SoundIcon';
 import { AlertTriangle, BellOff, Clock, ExternalLink, ShieldAlert } from 'lucide-react';
 
@@ -18,6 +19,9 @@ export default function AlarmModal({ alarm }) {
 
   if (!alarm) return null;
 
+  const matchedAsset = DEFAULT_WATCHLIST.find(i => i.symbol === alarm.symbol);
+  const isForex = matchedAsset?.category === 'forex';
+
   const formatElapsed = (sec) => {
     const mins = Math.floor(sec / 60);
     const s = sec % 60;
@@ -33,11 +37,19 @@ export default function AlarmModal({ alarm }) {
   };
 
   const getTradingViewUrl = () => {
+    if (matchedAsset && matchedAsset.tvSymbol) {
+      return `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(matchedAsset.tvSymbol)}`;
+    }
     let clean = alarm.symbol;
     if (clean.endsWith('USDT')) clean = 'BINANCE:' + clean;
     else if (clean === 'XAUUSD') clean = 'OANDA:XAUUSD';
     else if (clean === 'EURUSD') clean = 'FX:EURUSD';
     else if (clean === 'GBPUSD') clean = 'FX:GBPUSD';
+    else if (clean === 'US30') clean = 'DJ:DJI';
+    else if (clean === 'SPX') clean = 'SP:SPX';
+    else if (clean === 'NAS100') clean = 'NASDAQ:NDX';
+    else if (clean === 'GER40') clean = 'INDEX:DAX';
+    else if (clean === 'UK100') clean = 'INDEX:FTSE';
     return `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(clean)}`;
   };
 
@@ -63,17 +75,17 @@ export default function AlarmModal({ alarm }) {
         <div className="alarm-hero-section">
           <div className="alarm-symbol-tag">
             <ShieldAlert size={28} className="alarm-icon-wiggle" />
-            <h1>{alarm.symbol}</h1>
+            <h1>{getDisplaySymbol(alarm.symbol)}</h1>
           </div>
           <div className="alarm-price-row">
             <div className="alarm-price-box">
               <span className="price-label">TRIGGER LEVEL</span>
-              <span className="price-value target">${Number(alarm.targetPrice).toLocaleString()}</span>
+              <span className="price-value target">{!isForex ? '$' : ''}{formatAssetPrice(alarm.targetPrice, matchedAsset?.category)}</span>
             </div>
             <div className="alarm-price-divider">➔</div>
             <div className="alarm-price-box">
               <span className="price-label">LIVE PRICE</span>
-              <span className="price-value live">${Number(alarm.currentPrice).toLocaleString()}</span>
+              <span className="price-value live">{!isForex ? '$' : ''}{formatAssetPrice(alarm.currentPrice, matchedAsset?.category)}</span>
             </div>
           </div>
         </div>

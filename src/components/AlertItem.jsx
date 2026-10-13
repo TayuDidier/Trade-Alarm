@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { alertManager } from '../services/alertManager';
 import { ALARM_SOUND_PROFILES } from '../services/audioEngine';
+import { formatAssetPrice, getDisplaySymbol, DEFAULT_WATCHLIST } from '../services/marketData';
 import { 
   Bell, 
   BellOff, 
@@ -20,6 +21,8 @@ import SoundIcon from './SoundIcon';
 export default function AlertItem({ alert, livePrice }) {
   const isAbove = alert.condition === 'above';
   const target = parseFloat(alert.targetPrice);
+  const matchedAsset = DEFAULT_WATCHLIST.find(i => i.symbol === alert.symbol);
+  const isForex = matchedAsset?.category === 'forex';
 
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState(alert.strategyNote || '');
@@ -77,13 +80,18 @@ export default function AlertItem({ alert, livePrice }) {
           </div>
           <div>
             <div className="alert-symbol-title">
-              <strong>{alert.symbol.replace('USDT', '')}</strong>
+              <strong>{getDisplaySymbol(alert.symbol)}</strong>
+              {matchedAsset && (
+                <span className={`chip-badge-cat cat-${matchedAsset.category}`}>
+                  {matchedAsset.category.slice(0, 3).toUpperCase()}
+                </span>
+              )}
               <span className="condition-tag">
                 {isAbove ? 'CROSSES ABOVE' : 'DROPS BELOW'}
               </span>
             </div>
             <div className="alert-target-price">
-              Target: <strong>${target.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
+              Target: <strong>{!isForex ? '$' : ''}{formatAssetPrice(target, matchedAsset?.category)}</strong>
             </div>
           </div>
         </div>
@@ -106,10 +114,12 @@ export default function AlertItem({ alert, livePrice }) {
       {livePrice && dist && alert.active && (
         <div className="alert-proximity-row">
           <div className="proximity-info">
-            <span className="live-cur-price">Live: ${livePrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+            <span className="live-cur-price">
+              Live: {!isForex ? '$' : ''}{formatAssetPrice(livePrice, matchedAsset?.category)}
+            </span>
             <span className="dist-chip">
-              {dist.diff < 50 ? '🔥 Very Close: ' : 'Distance: '}
-              ${dist.diff.toLocaleString(undefined, { maximumFractionDigits: 2 })} ({dist.pct}%)
+              {dist.diff < (matchedAsset?.category === 'indices' ? 20 : 5) ? '🔥 Very Close: ' : 'Distance: '}
+              {!isForex ? '$' : ''}{formatAssetPrice(dist.diff, matchedAsset?.category)} ({dist.pct}%)
             </span>
           </div>
         </div>

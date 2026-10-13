@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { alertManager } from '../services/alertManager';
 import { audioEngine, ALARM_SOUND_PROFILES } from '../services/audioEngine';
-import { DEFAULT_WATCHLIST } from '../services/marketData';
+import { DEFAULT_WATCHLIST, ASSET_CATEGORIES, formatAssetPrice, getDisplaySymbol } from '../services/marketData';
 import SoundIcon from './SoundIcon';
 import { 
   X, 
@@ -19,10 +19,13 @@ import {
 export default function AddAlertModal({ isOpen, onClose, currentPrices, initialSymbol = 'BTCUSDT' }) {
   const [modalTab, setModalTab] = useState('price'); // 'price' | 'sound'
   const [symbol, setSymbol] = useState(initialSymbol);
+  const [assetCategoryFilter, setAssetCategoryFilter] = useState('all');
 
   const initialLive = currentPrices && currentPrices[initialSymbol] ? currentPrices[initialSymbol].price : null;
+  const initialAsset = DEFAULT_WATCHLIST.find(i => i.symbol === initialSymbol);
+  const isInitialForex = initialAsset?.category === 'forex';
   const defaultTarget = initialLive 
-    ? (initialLive * 1.01 > 10 ? (initialLive * 1.01).toFixed(2) : (initialLive * 1.01).toFixed(4))
+    ? (isInitialForex || initialLive < 2 ? (initialLive * 1.01).toFixed(4) : (initialLive * 1.01).toFixed(2))
     : '';
 
   const [targetPrice, setTargetPrice] = useState(defaultTarget);
@@ -43,26 +46,29 @@ export default function AddAlertModal({ isOpen, onClose, currentPrices, initialS
   if (!isOpen) return null;
 
   const currentLive = currentPrices && currentPrices[symbol] ? currentPrices[symbol].price : null;
+  const currentAsset = DEFAULT_WATCHLIST.find(i => i.symbol === symbol);
+  const isForex = currentAsset?.category === 'forex';
 
   const handleSelectSymbol = (newSym) => {
     setSymbol(newSym);
+    const matched = DEFAULT_WATCHLIST.find(i => i.symbol === newSym);
     if (currentPrices && currentPrices[newSym]) {
       const cur = currentPrices[newSym].price;
       const suggested = condition === 'above' ? cur * 1.01 : cur * 0.99;
-      setTargetPrice(suggested > 10 ? suggested.toFixed(2) : suggested.toFixed(4));
+      setTargetPrice(matched?.category === 'forex' || suggested < 2 ? suggested.toFixed(4) : suggested.toFixed(2));
     }
   };
 
   const handleUseCurrentPrice = () => {
     if (currentLive) {
-      setTargetPrice(currentLive > 10 ? currentLive.toFixed(2) : currentLive.toFixed(4));
+      setTargetPrice(isForex || currentLive < 2 ? currentLive.toFixed(4) : currentLive.toFixed(2));
     }
   };
 
   const handleAddPercentage = (pct) => {
     if (currentLive) {
       const calculated = currentLive * (1 + pct / 100);
-      setTargetPrice(calculated > 10 ? calculated.toFixed(2) : calculated.toFixed(4));
+      setTargetPrice(isForex || calculated < 2 ? calculated.toFixed(4) : calculated.toFixed(2));
       if (pct > 0) setCondition('above');
       if (pct < 0) setCondition('below');
     }
@@ -159,23 +165,52 @@ export default function AddAlertModal({ isOpen, onClose, currentPrices, initialS
           {/* TAB 1: PRICE & CONDITION */}
           {modalTab === 'price' && (
             <div className="modal-tab-content">
-              {/* Trading Pair Chips */}
+              {/* Trading Pair Chips with Category Filter */}
               <div className="form-group mb-3">
-                <label className="field-label">TRADING ASSET</label>
-                <div className="symbol-chips-grid">
-                  {DEFAULT_WATCHLIST.map((item) => (
+                <div className="label-with-action">
+                  <label className="field-label">TRADING ASSET</label>
+                  <span className="char-hint">{currentAsset?.name} ({currentAsset?.category.toUpperCase()})</span>
+                </div>
+
+                {/* Category Pills */}
+                <div className="modal-category-pills">
+                  {ASSET_CATEGORIES.map(cat => (
                     <button
                       type="button"
-                      key={item.symbol}
-                      className={`chip-button ${symbol === item.symbol ? 'selected' : ''}`}
-                      onClick={() => handleSelectSymbol(item.symbol)}
+                      key={cat.id}
+                      className={`modal-cat-pill ${assetCategoryFilter === cat.id ? 'active' : ''}`}
+                      onClick={() => setAssetCategoryFilter(cat.id)}
                     >
-                      <span className="chip-symbol">{item.symbol.replace('USDT', '')}</span>
-                      <span className="chip-price">
-                        ${currentPrices[item.symbol] ? currentPrices[item.symbol].price.toLocaleString() : item.price}
-                      </span>
+                      {cat.label}
                     </button>
                   ))}
+                </div>
+
+                <div className="symbol-chips-grid">
+                  {(assetCategoryFilter === 'all' 
+                    ? DEFAULT_WATCHLIST 
+                    : DEFAULT_WATCHLIST.filter(i => i.category === assetCategoryFilter)
+                  ).map((item) => {
+                    const live = currentPrices[item.symbol];
+                    const p = live ? live.price : item.price;
+                    const isItemForex = item.category === 'forex';
+                    return (
+                      <button
+                        type="button"
+                        key={item.symbol}
+                        className={`chip-button ${symbol === item.symbol ? 'selected' : ''}`}
+                        onClick={() => handleSelectSymbol(item.symbol)}
+                      >
+                        <div className="chip-symbol-row">
+                          <span className="chip-symbol">{getDisplaySymbol(item.symbol)}</span>
+                          <span className={`chip-badge-cat cat-${item.category}`}>{item.category.slice(0, 3).toUpperCase()}</span>
+                        </div>
+                        <span className="chip-price">
+                          {!isItemForex ? '$' : ''}{formatAssetPrice(p, item.category)}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -208,19 +243,19 @@ export default function AddAlertModal({ isOpen, onClose, currentPrices, initialS
                   <label className="field-label">TARGET PRICE LEVEL</label>
                   {currentLive && (
                     <button type="button" className="btn-text-action" onClick={handleUseCurrentPrice}>
-                      Current Live: ${currentLive.toLocaleString()}
+                      Current Live: {!isForex ? '$' : ''}{formatAssetPrice(currentLive, currentAsset?.category)}
                     </button>
                   )}
                 </div>
 
                 <div className="input-price-wrapper">
-                  <span className="currency-prefix">$</span>
+                  <span className="currency-prefix">{!isForex ? '$' : '💱'}</span>
                   <input
                     type="number"
                     step="any"
                     value={targetPrice}
                     onChange={(e) => setTargetPrice(e.target.value)}
-                    placeholder="0.00"
+                    placeholder={isForex ? '1.0000' : '0.00'}
                     required
                     className="input-price-large"
                   />
